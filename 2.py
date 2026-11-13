@@ -6,23 +6,13 @@ getcontext().prec = 20
 st.markdown("""
 <style>
 div[data-testid="stVerticalBlock"] { gap: 6px !important; }
-.rule-row {
-    display:flex;
-    flex-direction:row;
-    align-items:center;
-    gap:6px;
-    margin:4px 0;
-    flex-wrap:nowrap;
-}
-.rule-label-text {
-    white-space:nowrap;
-    font-size:15px;
-}
-.rule-input {
-    width:90px;
-}
+.rule-wrap { margin-bottom:10px; }
+.rule-label { font-size:15px; white-space:nowrap; }
+.rule-inp { width:100%; }
+.item-header { font-weight:bold; font-size:14px; }
 </style>
 """, unsafe_allow_html=True)
+
 
 def calc_total_after_group_reduce(selected_items, rule_list):
     g0_items = []
@@ -47,6 +37,7 @@ def calc_total_after_group_reduce(selected_items, rule_list):
 
     def sum_price(lst):
         return sum(p for o, d, p in lst)
+
     g0_sum = sum_price(g0_items)
     g1_sum = sum_price(g1_items)
     g2_sum = sum_price(g2_items)
@@ -62,13 +53,17 @@ def calc_total_after_group_reduce(selected_items, rule_list):
             return total
         cnt = int(total // full)
         return total - cnt * reduce_val
+
     r1 = apply_rule(g1_sum, rule_list[0])
     r2 = apply_rule(g2_sum, rule_list[1])
     r3 = apply_rule(g3_sum, rule_list[2])
     r4 = apply_rule(g4_sum, rule_list[3])
     r5 = apply_rule(g5_sum, rule_list[4])
     total = g0_sum + r1 + r2 + r3 + r4 + r5
-    return total, (g0_sum, g1_sum, g2_sum, g3_sum, g4_sum, g5_sum, r1, r2, r3, r4, r5), (g0_items, g1_items, g2_items, g3_items, g4_items, g5_items)
+    return total, (g0_sum, g1_sum, g2_sum, g3_sum, g4_sum, g5_sum, r1, r2, r3, r4, r5), (
+        g0_items, g1_items, g2_items, g3_items, g4_items, g5_items
+    )
+
 
 def meet_in_the_middle(item_pool, rule_list, target):
     n = len(item_pool)
@@ -77,6 +72,7 @@ def meet_in_the_middle(item_pool, rule_list, target):
     mid = n // 2
     left_arr = item_pool[:mid]
     right_arr = item_pool[mid:]
+
     def gen_subset(arr):
         res = []
         m = len(arr)
@@ -88,11 +84,13 @@ def meet_in_the_middle(item_pool, rule_list, target):
             sum_final, _, _ = calc_total_after_group_reduce(pack, rule_list)
             res.append((sum_final, pack))
         return res
+
     sub_left = gen_subset(left_arr)
     sub_right = gen_subset(right_arr)
     right_dict = {}
     for s_r, pack_r in sub_right:
         right_dict.setdefault(s_r, []).append(pack_r)
+
     for s_l, pack_l in sub_left:
         need = target - s_l
         if need in right_dict:
@@ -103,26 +101,33 @@ def meet_in_the_middle(item_pool, rule_list, target):
                     return combined
     return None
 
+
 def fmt_group(items):
     parts = []
     for orig, disc, p in items:
         if disc == 100:
             parts.append(f"{orig}")
         else:
-            s = str(float(disc/100)).rstrip('0').rstrip('.') if '.' in str(float(disc/100)) else str(float(disc/100))
+            s = str(float(disc / 100)).rstrip('0').rstrip('.') if '.' in str(float(disc / 100)) else str(
+                float(disc / 100))
             parts.append(f"[{orig}×{s}={p}]")
     return "+".join(parts)
+
 
 test_rows = [
     (1, "100", "90", 2), (2, "20", "", 1), (3, "30", "", 1), (4, "40", "", 5), (5, "50", "", 1),
     (6, "60", "", 2), (7, "70", "", 2), (8, "80", "", 2), (9, "90", "", 2), (10, "10", "", 1),
-    (11, "110", "90", 3), (12, "125", "88", 3), (13, "130", "50", 3), (14, "145", "88", 3), (15, "155", "88", 3),
-    (16, "160", "80", 0), (17, "175", "88", 0), (18, "180", "80", 5), (19, "190", "", 5), (20, "200", "", 5),
-    (21, "210", "", 5), (22, "88", "", 0), (23, "135", "80", 4), (24, "220", "85", 4), (25, "230", "90", 3),
-    (26, "240", "88", 4), (27, "250", "82", 4), (28, "260", "", 4), (29, "270", "", 0), (30, "280", "", 1),
+    (11, "110", "90", 3), (12, "125", "88", 3), (13, "130", "50", 3), (14, "145", "88", 3),
+    (15, "155", "88", 3),
+    (16, "160", "80", 0), (17, "175", "88", 0), (18, "180", "80", 5), (19, "190", "", 5),
+    (20, "200", "", 5),
+    (21, "210", "", 5), (22, "88", "", 0), (23, "135", "80", 4), (24, "220", "85", 4),
+    (25, "230", "90", 3),
+    (26, "240", "88", 4), (27, "250", "82", 4), (28, "260", "", 4), (29, "270", "", 0),
+    (30, "280", "", 1),
 ]
 test_target = "1401"
-test_rules = [["50","5"],["200","20"],["300","30"],["250","15"],["400","20"]]
+test_rules = [["50", "5"], ["200", "20"], ["300", "30"], ["250", "15"], ["400", "20"]]
 
 if "reset_ver" not in st.session_state:
     st.session_state.reset_ver = 0
@@ -145,16 +150,14 @@ st.markdown("#### 5 组满减规则")
 rule_data = []
 rule_texts = []
 for i in range(5):
-    # 这里：一行 = 文字 + 两个输入框，不再用 st.columns
-    st.markdown(f'<div class="rule-row"><span class="rule-label-text">满{i+1}</span></div>', unsafe_allow_html=True)
-    c1, c2 = st.columns([1,1])
+    rid = i + 1
     f_def, r_def = test_rules[i]
     fv = f_def if is_first else ""
     rv = r_def if is_first else ""
-    with c1:
-        f_txt = st.text_input("", value=fv, key=f"rf_{ver}_{i}", label_visibility="collapsed")
-    with c2:
-        r_txt = st.text_input("", value=rv, key=f"rr_{ver}_{i}", label_visibility="collapsed")
+    st.markdown(f'<div class="rule-wrap"><span class="rule-label">满{rid}</span></div>', unsafe_allow_html=True)
+    f_txt = st.text_input("", value=fv, key=f"rf_{ver}_{i}", label_visibility="collapsed")
+    st.markdown(f'<div class="rule-wrap"><span class="rule-label">减{rid}</span></div>', unsafe_allow_html=True)
+    r_txt = st.text_input("", value=rv, key=f"rr_{ver}_{i}", label_visibility="collapsed")
     rule_data.append((f_txt, r_txt))
     if f_txt.strip() and r_txt.strip():
         rule_texts.append(f"满{f_txt}减{r_txt}")
@@ -168,7 +171,15 @@ st.divider()
 result_area = st.container()
 
 st.subheader("商品列表（共30条）")
-sel_options = ["无满减(0)", "满减1(1)", "满减2(2)", "满减3(3)", "满减4(4)", "满减5(5)"]
+# 表头
+c_seq_h, c_price_h, c_disc_h, c_sel_h, c_mark_h = st.columns([0.2, 0.7, 0.65, 1.0, 0.28])
+c_seq_h.markdown("<span class='item-header'>序号</span>", unsafe_allow_html=True)
+c_price_h.markdown("<span class='item-header'>价格</span>", unsafe_allow_html=True)
+c_disc_h.markdown("<span class='item-header'>折扣</span>", unsafe_allow_html=True)
+c_sel_h.markdown("<span class='item-header'>活动</span>", unsafe_allow_html=True)
+
+# 去掉括号
+sel_options = ["无满减", "满减1", "满减2", "满减3", "满减4", "满减5"]
 sel_map = dict(zip(sel_options, range(6)))
 item_data = []
 
@@ -180,7 +191,8 @@ for idx in range(30):
     c_seq.write(f"{seq:02d}")
     p_str = c_price.text_input("", value=pv, key=f"p_{ver}_{idx}", label_visibility="collapsed")
     d_str = c_disc.text_input("", value=dv, key=f"d_{ver}_{idx}", label_visibility="collapsed")
-    sel_str = c_sel.selectbox("", sel_options, index=sel_def if is_first else 0, key=f"s_{ver}_{idx}", label_visibility="collapsed")
+    sel_str = c_sel.selectbox("", sel_options, index=sel_def if is_first else 0, key=f"s_{ver}_{idx}",
+                              label_visibility="collapsed")
     if idx in st.session_state.hit_ids:
         c_mark.markdown("✅")
     item_data.append((idx, p_str, d_str, sel_map[sel_str]))
@@ -226,7 +238,7 @@ if run_btn:
                     pd = orig * disc / Decimal("100")
                     item_pool.append((idx, orig, disc, pd, sel))
                 except:
-                    st.session_state.result_msg = f"❌ 第 {idx+1} 行格式错"
+                    st.session_state.result_msg = f"❌ 第 {idx + 1} 行格式错"
                     bad_item = True
                     break
             if bad_item:
