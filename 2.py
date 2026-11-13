@@ -3,15 +3,24 @@ import streamlit as st
 
 getcontext().prec = 20
 
-# CSS 重点：隐藏多余标签、压缩、横向
 st.markdown("""
 <style>
-    div[data-testid="stVerticalBlock"] { gap: 4px !important; }
-    .row-wrap { display:flex; flex-wrap:nowrap; gap:10px; align-items:center; }
-    .mini-inp { flex: 1; min-width: 85px; max-width:140px; }
-    div[data-testid="stTextInput"] label { display:none; }
-    .rule-row { display:flex; gap:8px; align-items:center; margin-bottom:4px; }
-    .rule-label { width:36px; white-space:nowrap; font-size:14px; }
+div[data-testid="stVerticalBlock"] { gap: 6px !important; }
+.rule-row {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:6px;
+    margin:4px 0;
+    flex-wrap:nowrap;
+}
+.rule-label-text {
+    white-space:nowrap;
+    font-size:15px;
+}
+.rule-input {
+    width:90px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,23 +139,22 @@ st.set_page_config(page_title="价格计算（同活动只减一次）", layout=
 st.title("价格计算（同活动只减一次）")
 
 st.subheader("参数设置")
-# 目标额度放一行
-col_t, col_btn = st.columns([2,1])
-with col_t:
-    target_val = st.text_input("目标额度", value=test_target if is_first else "", key=f"target_{ver}")
+target_val = st.text_input("目标额度", value=test_target if is_first else "", key=f"target_{ver}")
 
 st.markdown("#### 5 组满减规则")
 rule_data = []
 rule_texts = []
 for i in range(5):
+    # 这里：一行 = 文字 + 两个输入框，不再用 st.columns
+    st.markdown(f'<div class="rule-row"><span class="rule-label-text">满{i+1}</span></div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1,1])
     f_def, r_def = test_rules[i]
     fv = f_def if is_first else ""
     rv = r_def if is_first else ""
     with c1:
-        f_txt = st.text_input(f"满{i+1}", value=fv, key=f"rf_{ver}_{i}", label_visibility="collapsed")
+        f_txt = st.text_input("", value=fv, key=f"rf_{ver}_{i}", label_visibility="collapsed")
     with c2:
-        r_txt = st.text_input(f"减{i+1}", value=rv, key=f"rr_{ver}_{i}", label_visibility="collapsed")
+        r_txt = st.text_input("", value=rv, key=f"rr_{ver}_{i}", label_visibility="collapsed")
     rule_data.append((f_txt, r_txt))
     if f_txt.strip() and r_txt.strip():
         rule_texts.append(f"满{f_txt}减{r_txt}")
