@@ -8,8 +8,8 @@ st.markdown("""
 div[data-testid="stVerticalBlock"] { gap: 6px !important; }
 .rule-wrap { margin-bottom:10px; }
 .rule-label { font-size:15px; white-space:nowrap; }
-.rule-inp { width:100%; }
-.item-header { font-weight:bold; font-size:14px; }
+.item-block { margin-top:14px; }
+.item-title { font-weight:bold; font-size:16px; margin-bottom:4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -170,15 +170,7 @@ clear_btn = bc2.button("清空全部")
 st.divider()
 result_area = st.container()
 
-st.subheader("商品列表（共30条）")
-# 表头
-c_seq_h, c_price_h, c_disc_h, c_sel_h, c_mark_h = st.columns([0.2, 0.7, 0.65, 1.0, 0.28])
-c_seq_h.markdown("<span class='item-header'>序号</span>", unsafe_allow_html=True)
-c_price_h.markdown("<span class='item-header'>价格</span>", unsafe_allow_html=True)
-c_disc_h.markdown("<span class='item-header'>折扣</span>", unsafe_allow_html=True)
-c_sel_h.markdown("<span class='item-header'>活动</span>", unsafe_allow_html=True)
-
-# 去掉括号
+st.subheader("商品列表（共 30 条）")
 sel_options = ["无满减", "满减1", "满减2", "满减3", "满减4", "满减5"]
 sel_map = dict(zip(sel_options, range(6)))
 item_data = []
@@ -187,14 +179,16 @@ for idx in range(30):
     seq, p_def, d_def, sel_def = test_rows[idx]
     pv = p_def if is_first else ""
     dv = d_def if is_first else ""
-    c_seq, c_price, c_disc, c_sel, c_mark = st.columns([0.2, 0.7, 0.65, 1.0, 0.28])
-    c_seq.write(f"{seq:02d}")
-    p_str = c_price.text_input("", value=pv, key=f"p_{ver}_{idx}", label_visibility="collapsed")
-    d_str = c_disc.text_input("", value=dv, key=f"d_{ver}_{idx}", label_visibility="collapsed")
-    sel_str = c_sel.selectbox("", sel_options, index=sel_def if is_first else 0, key=f"s_{ver}_{idx}",
-                              label_visibility="collapsed")
+    st.markdown(f'<div class="item-block"><div class="item-title">{seq:02d}</div></div>', unsafe_allow_html=True)
+    st.markdown('<span class="rule-label">价格</span>', unsafe_allow_html=True)
+    p_str = st.text_input("", value=pv, key=f"p_{ver}_{idx}", label_visibility="collapsed")
+    st.markdown('<span class="rule-label">折扣</span>', unsafe_allow_html=True)
+    d_str = st.text_input("", value=dv, key=f"d_{ver}_{idx}", label_visibility="collapsed")
+    st.markdown('<span class="rule-label">活动</span>', unsafe_allow_html=True)
+    sel_str = st.selectbox("", sel_options, index=sel_def if is_first else 0, key=f"s_{ver}_{idx}",
+                           label_visibility="collapsed")
     if idx in st.session_state.hit_ids:
-        c_mark.markdown("✅")
+        st.markdown("✅")
     item_data.append((idx, p_str, d_str, sel_map[sel_str]))
 
 if clear_btn:
@@ -275,7 +269,7 @@ if run_btn:
                 if rule_texts[3] and g4i:
                     lines.append(f"<b>{rule_texts[3]}：</b>{fmt_group(g4i)} = {g4} → {r4}")
                 if rule_texts[4] and g5i:
-                    lines.append(f"<b>{rule_texts[4]}：</b>{fmt_group(g5i)} = {g5} → {r5}")
+                    lines.append(f"<b>{rule_texts[4]}：</b>{fmt_group(g5i)} = {g5} → {g5}")
                 st.session_state.result_msg = "\n\n".join(lines)
                 st.rerun()
 
