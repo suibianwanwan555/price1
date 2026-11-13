@@ -3,6 +3,23 @@ import streamlit as st
 
 getcontext().prec = 20
 
+# CSS：控制输入框宽度，移动端紧凑
+st.markdown("""
+<style>
+.stTextInput > div > div > input {
+    max-width: 220px !important;
+}
+@media (max-width: 640px) {
+    .stTextInput > div > div > input {
+        max-width: 160px !important;
+    }
+    .row-wrap {
+        gap: 4px;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ===================== 核心计算函数【原样保留，一点没改】 =====================
 def calc_total_after_group_reduce(selected_items, rule_list):
     g0_items = []
@@ -127,16 +144,15 @@ if "hit_ids" not in st.session_state:
 ver = st.session_state.reset_ver
 is_first = (ver == 0)
 
-# 布局改成centered，手机友好，不强制宽屏
 st.set_page_config(page_title="价格计算（同活动只减一次）", layout="centered")
 st.title("价格计算（同活动只减一次）")
 
-# ==========【顶部：参数设置区（手机优先放在最上面）】==========
+# ==========【顶部：参数设置区】==========
 st.subheader("参数设置")
 target_default = test_target if is_first else ""
 target_val = st.text_input("目标额度", value=target_default, key=f"target_{ver}")
 
-st.markdown("#### 5组满减规则")
+st.markdown("#### 5 组满减规则")
 rule_data = []
 rule_texts = []
 for i in range(5):
@@ -152,7 +168,6 @@ for i in range(5):
     else:
         rule_texts.append("")
 
-# 按钮放在参数区下面
 btn_col1, btn_col2 = st.columns(2)
 run_btn = btn_col1.button("开始计算", type="primary")
 clear_btn = btn_col2.button("清空全部")
@@ -161,76 +176,35 @@ st.divider()
 # ==========【结果展示区】==========
 result_area = st.container()
 
-# ==========【下方：商品列表】==========
-st.subheader("商品列表（共30条）")
+# ==========【商品列表】==========
+st.subheader("商品列表（共 30 条）")
 item_data = []
-# 表头，手机适配
-h_cols = st.columns([0.4, 1, 1, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.6])
-h_cols[0].write("序号")
-h_cols[1].write("单价")
-h_cols[2].write("折扣")
-h_cols[3].write("无满减")
-h_cols[4].write("满减1")
-h_cols[5].write("满减2")
-h_cols[6].write("满减3")
-h_cols[7].write("满减4")
-h_cols[8].write("满减5")
-h_cols[9].write("标记")
-st.divider()
+
+# 下拉选项
+sel_options = ["无满减(0)", "满减1(1)", "满减2(2)", "满减3(3)", "满减4(4)", "满减5(5)"]
+sel_map = {k:i for i,k in enumerate(sel_options)}
+rev_map = {i:i for i in range(6)}
 
 for idx in range(30):
     seq, p_def, d_def, sel_def = test_rows[idx]
-    r_cols = st.columns([0.4, 1, 1, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.6])
-    r_cols[0].write(f"{seq:02d}")
     pv = p_def if is_first else ""
     dv = d_def if is_first else ""
-    price_str = r_cols[1].text_input("", value=pv, key=f"p_{ver}_{idx}", label_visibility="collapsed")
-    disc_str = r_cols[2].text_input("", value=dv, key=f"d_{ver}_{idx}", label_visibility="collapsed")
+    default_sel_str = sel_options[sel_def]
 
-    if is_first:
-        idx0 = 0 if sel_def == 0 else None
-        idx1 = 0 if sel_def == 1 else None
-        idx2 = 0 if sel_def == 2 else None
-        idx3 = 0 if sel_def == 3 else None
-        idx4 = 0 if sel_def == 4 else None
-        idx5 = 0 if sel_def == 5 else None
-    else:
-        idx0 = 0
-        idx1 = None
-        idx2 = None
-        idx3 = None
-        idx4 = None
-        idx5 = None
+    r_cols = st.columns([0.35, 1, 1, 1.3, 0.4])
+    r_cols[0].write(f"{seq:02d}")
+    price_str = r_cols[1].text_input("单价", value=pv, key=f"p_{ver}_{idx}", label_visibility="collapsed")
+    disc_str = r_cols[2].text_input("折扣", value=dv, key=f"d_{ver}_{idx}", label_visibility="collapsed")
+    sel_str = r_cols[3].selectbox("活动", sel_options, index=sel_def if is_first else 0, key=f"sel_{ver}_{idx}", label_visibility="collapsed")
+    final_sel = sel_map[sel_str]
 
-    sel0 = r_cols[3].radio("", options=[0], index=idx0, key=f"sel0_{ver}_{idx}", label_visibility="collapsed")
-    sel1 = r_cols[4].radio("", options=[1], index=idx1, key=f"sel1_{ver}_{idx}", label_visibility="collapsed")
-    sel2 = r_cols[5].radio("", options=[2], index=idx2, key=f"sel2_{ver}_{idx}", label_visibility="collapsed")
-    sel3 = r_cols[6].radio("", options=[3], index=idx3, key=f"sel3_{ver}_{idx}", label_visibility="collapsed")
-    sel4 = r_cols[7].radio("", options=[4], index=idx4, key=f"sel4_{ver}_{idx}", label_visibility="collapsed")
-    sel5 = r_cols[8].radio("", options=[5], index=idx5, key=f"sel5_{ver}_{idx}", label_visibility="collapsed")
-
-    if st.session_state.get(f"sel0_{ver}_{idx}") == 0:
-        final_sel = 0
-    elif st.session_state.get(f"sel1_{ver}_{idx}") == 1:
-        final_sel = 1
-    elif st.session_state.get(f"sel2_{ver}_{idx}") == 2:
-        final_sel = 2
-    elif st.session_state.get(f"sel3_{ver}_{idx}") == 3:
-        final_sel = 3
-    elif st.session_state.get(f"sel4_{ver}_{idx}") == 4:
-        final_sel = 4
-    elif st.session_state.get(f"sel5_{ver}_{idx}") == 5:
-        final_sel = 5
-    else:
-        final_sel = 0
-
-    item_data.append( (idx, price_str, disc_str, final_sel) )
+    item_data.append((idx, price_str, disc_str, final_sel))
     if idx in st.session_state.hit_ids:
-        r_cols[9].markdown("✅")
+        r_cols[4].markdown("✅")
     else:
-        r_cols[9].write("")
+        r_cols[4].write("")
 
-# ========== 【清空逻辑】 ==========
+# ========== 清空逻辑 ==========
 if clear_btn:
     st.session_state.reset_ver += 1
     st.session_state.result_pack = None
@@ -238,7 +212,7 @@ if clear_btn:
     st.session_state.hit_ids = set()
     st.rerun()
 
-# 【点击计算】
+# ========== 计算 ==========
 if run_btn:
     with result_area:
         with st.spinner("正在计算，请稍候..."):
@@ -322,7 +296,6 @@ if run_btn:
                             st.session_state.result_msg = "\n\n".join(msg_lines)
                             st.rerun()
 
-# 【固定展示结果区域】
 with result_area:
     if st.session_state.result_msg:
         st.markdown(st.session_state.result_msg, unsafe_allow_html=True)
