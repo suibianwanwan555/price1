@@ -205,6 +205,7 @@ if run_btn:
         except:
             st.session_state.result_msg = "❌ 目标额度错误"
             st.session_state.result_pack = None
+            st.session_state.result_msg = ""
             st.session_state.hit_ids = set()
         else:
             rule_list = []
@@ -260,16 +261,16 @@ if run_btn:
                 ]
                 if g0i:
                     lines.append(f"<b>无满减组：</b>{fmt_group(g0i)} = {g0}")
-                if rule_texts[0] and g1i:
+                if g1i:
                     lines.append(f"<b>{rule_texts[0]}：</b>{fmt_group(g1i)} = {g1} → {r1}")
-                if rule_texts[1] and g2i:
+                if g2i:
                     lines.append(f"<b>{rule_texts[1]}：</b>{fmt_group(g2i)} = {g2} → {r2}")
-                if rule_texts[2] and g3i:
+                if g3i:
                     lines.append(f"<b>{rule_texts[2]}：</b>{fmt_group(g3i)} = {g3} → {r3}")
-                if rule_texts[3] and g4i:
+                if g4i:
                     lines.append(f"<b>{rule_texts[3]}：</b>{fmt_group(g4i)} = {g4} → {r4}")
-                if rule_texts[4] and g5i:
-                    lines.append(f"<b>{rule_texts[4]}：</b>{fmt_group(g5i)} = {g5} → {g5}")
+                if g5i:
+                    lines.append(f"<b>{rule_texts[4]}：</b>{fmt_group(g5i)} = {g5} → {r5}")
                 st.session_state.result_msg = "\n\n".join(lines)
                 st.rerun()
 
